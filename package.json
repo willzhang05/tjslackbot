@@ -1,0 +1,25 @@
+{
+  "name": "tjslackbot",
+  "version": "1.0.0",
+  "description": "slack bot",
+  "main": "bot.js",
+  "dependencies": {
+    "express": "^4.x.x",
+    "body-parser": "^1.x.x",
+    "request": "^2.75.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node bot.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/willzhang05/tjslackbot.git"
+  },
+  "author": "William Zhang",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/willzhang05/tjslackbot/issues"
+  },
+  "homepage": "https://github.com/willzhang05/tjslackbot#readme"
+}

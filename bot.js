@@ -1,5 +1,6 @@
 var cli = require("node-cmd");
 var await = require("await");
+var safeEval = require("safe-eval");
 var output;
 //var output = runCommand(cmd, cmdArgs, function(result) { return result; });
 
@@ -11,7 +12,7 @@ var output;
 
 function runCommand(cmd, args, callback) {
     var spawn = require("child_process").spawn;
-    var command = spawn(cmd, ["nc.me"]);
+    var command = spawn(cmd, args);
     console.log("1 " + cmd + " " + args);
     command.stdout.on("data", function(data) {
         output = data.toString();
@@ -39,29 +40,36 @@ module.exports = function (req, res, next) {
     if(cmdName === "help") {
         botPayload = help(args);
     }
-    if(cmdName === "nslookup") {
-        botPayload = runCommand("ls", ["-l"], function(result) { return result; });//nslookup(args);
+    else if(cmdName === "hello") {
+        botPayload = { text : "Hello, " + userName + "!" };
     }
-    if(cmdName === "calc") {
-        botPayload = { text : eval(args[1].toString()) };
+    else if(cmdName === "nslookup") {
+        botPayload = { text : nslookup(args)};//runCommand(cmdName, [args[1]], function(result) { return result; });//nslookup(args);
+        console.log("3 " + nslookup(args));
     }
-    if(cmdName === "lmgtfy") {
+    else if(cmdName === "calc") {
+        botPayload = { text : safeEval(args[1].toString().replace("/([^\d\w+\-*\/\\\(\)\.])/", "")) };
+    }
+    else if(cmdName === "lmgtfy") {
         var search = "";
         for(var i = 1; i < args.length; i++) {
             search += args[i] + "+";
         }
         botPayload = { text : "http://lmgtfy.com/?q=" + search.substring(0, search.length - 1) };
     }
-    if(cmdName === "g") {
+    else if(cmdName === "g") {
         var search = "";
         for(var i = 1; i < args.length; i++) {
             search += args[i] + "+";
         }
         botPayload = { text : "http://google.com/search?q=" + search.substring(0, search.length - 1) };
     }
-    if(cmdName === "date") {
+    else if(cmdName === "date") {
         var offset = -4;
         botPayload = { text : new Date( new Date().getTime() + offset * 3600 * 1000).toUTCString().replace( / GMT$/, "" ) };
+    }
+    else {
+        botPayload = { text : "Invalid command. Run !help to see supported commands." }
     }
     // avoid infinite loop
     if (userName !== 'slackbot') {
@@ -73,7 +81,7 @@ module.exports = function (req, res, next) {
 
 function help(args) {
     return {
-        "text" : "Commands: !help, !nslookup <domain>, !calc <expression>, !lmgtfy <thing>, !g <thing>, !date"
+        "text" : "Commands: !help, !hello, !nslookup <domain>, !calc <expression>, !lmgtfy <thing>, !g <thing>, !date"
     };
 }
 
@@ -90,8 +98,9 @@ function nslookup(args) {
         domain = domain.slice(0, domain.length - 1);
     }
     res = { text : await("data") };
-    runCommand(cmd, args, function(result) { 
-        res["text"].keep("data", result);
+    runCommand(cmd, [domain], function(result) { 
+        res = result;
+        //res["text"].keep("data", result);
         return result;
     });
     //res["text"] = output;

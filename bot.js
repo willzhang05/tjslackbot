@@ -1,24 +1,24 @@
 var cli = require("node-cmd");
-var output = "";
-var cmd = "echo";
-var cmdArgs = [" "];
-run();
-function run() {runCommand(cmd, cmdArgs, runCommandCallback);}
+var await = require("await");
+var output;
+//var output = runCommand(cmd, cmdArgs, function(result) { return result; });
 
-function runCommandCallback(result) {
+/*function runCommandCallback(result) {
     console.log(cmd + " arg:" + cmdArgs);
-    output += result;
     console.log(output);
-}
+    return result;
+}*/
 
 function runCommand(cmd, args, callback) {
     var spawn = require("child_process").spawn;
-    var command = spawn(cmd, args);
+    var command = spawn(cmd, ["nc.me"]);
+    console.log("1 " + cmd + " " + args);
     command.stdout.on("data", function(data) {
-        output += data.toString();
+        output = data.toString();
     });
     command.on("error", function(err){throw err});
     command.on("close", function(code) {
+        console.log("2 " + output);
         return callback(output);
     });
 }
@@ -35,14 +35,34 @@ module.exports = function (req, res, next) {
     var args = req.body.text.split(" ");
     var botPayload;
     console.log(args);
-    if(args[0].includes("help")) {
+    var cmdName = args[0].substring(1);
+    if(cmdName === "help") {
         botPayload = help(args);
     }
-    if(args[0].includes("nslookup")) {
-        nslookup(args);
-        botPayload = {"text" : output };
+    if(cmdName === "nslookup") {
+        botPayload = runCommand("ls", ["-l"], function(result) { return result; });//nslookup(args);
     }
-
+    if(cmdName === "calc") {
+        botPayload = { text : eval(args[1].toString()) };
+    }
+    if(cmdName === "lmgtfy") {
+        var search = "";
+        for(var i = 1; i < args.length; i++) {
+            search += args[i] + "+";
+        }
+        botPayload = { text : "http://lmgtfy.com/?q=" + search.substring(0, search.length - 1) };
+    }
+    if(cmdName === "g") {
+        var search = "";
+        for(var i = 1; i < args.length; i++) {
+            search += args[i] + "+";
+        }
+        botPayload = { text : "http://google.com/search?q=" + search.substring(0, search.length - 1) };
+    }
+    if(cmdName === "date") {
+        var offset = -4;
+        botPayload = { text : new Date( new Date().getTime() + offset * 3600 * 1000).toUTCString().replace( / GMT$/, "" ) };
+    }
     // avoid infinite loop
     if (userName !== 'slackbot') {
         return res.status(200).json(botPayload);
@@ -53,12 +73,12 @@ module.exports = function (req, res, next) {
 
 function help(args) {
     return {
-        "text" : "Commands: !help, !nslookup <domain>"
+        "text" : "Commands: !help, !nslookup <domain>, !calc <expression>, !lmgtfy <thing>, !g <thing>, !date"
     };
 }
 
 function nslookup(args) {
-    var res = { "text" : "" };
+    res = { text : "" };
     if(args.length == 1 || args[1].match("/([^.\d\w])/g")) {
         res["text"] = "Invalid syntax";
         return res;
@@ -69,8 +89,13 @@ function nslookup(args) {
         domain = args[1].split("|")[1];
         domain = domain.slice(0, domain.length - 1);
     }
-    cmdArgs = [domain];
-    run();
+    res = { text : await("data") };
+    runCommand(cmd, args, function(result) { 
+        res["text"].keep("data", result);
+        return result;
+    });
+    //res["text"] = output;
+    return res;
 }
 
 

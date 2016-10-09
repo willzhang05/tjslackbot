@@ -37,39 +37,44 @@ module.exports = function (req, res, next) {
     var botPayload;
     console.log(args);
     var cmdName = args[0].substring(1);
-    if(cmdName === "help") {
-        botPayload = help(args);
-    }
-    else if(cmdName === "hello") {
-        botPayload = { text : "Hello, " + userName + "!" };
-    }
-    else if(cmdName === "nslookup") {
-        botPayload = { text : nslookup(args)};//runCommand(cmdName, [args[1]], function(result) { return result; });//nslookup(args);
-        console.log("3 " + nslookup(args));
-    }
-    else if(cmdName === "calc") {
-        botPayload = { text : safeEval(args[1].toString().replace("/([^\d\w+\-*\/\\\(\)\.])/", "")) };
-    }
-    else if(cmdName === "lmgtfy") {
-        var search = "";
-        for(var i = 1; i < args.length; i++) {
-            search += args[i] + "+";
+    try {
+        if(cmdName === "help") {
+            botPayload = help(args);
         }
-        botPayload = { text : "http://lmgtfy.com/?q=" + search.substring(0, search.length - 1) };
-    }
-    else if(cmdName === "g") {
-        var search = "";
-        for(var i = 1; i < args.length; i++) {
-            search += args[i] + "+";
+        else if(cmdName === "hello") {
+            botPayload = { text : "Hello, " + userName + "!" };
         }
-        botPayload = { text : "http://google.com/search?q=" + search.substring(0, search.length - 1) };
-    }
-    else if(cmdName === "date") {
-        var offset = -4;
-        botPayload = { text : new Date( new Date().getTime() + offset * 3600 * 1000).toUTCString().replace( / GMT$/, "" ) };
-    }
-    else {
-        botPayload = { text : "Invalid command. Run !help to see supported commands." }
+        else if(cmdName === "nslookup") {
+            botPayload = { text : nslookup(args)};//runCommand(cmdName, [args[1]], function(result) { return result; });//nslookup(args);
+            console.log("3 " + nslookup(args));
+        }
+        else if(cmdName === "calc") {
+            botPayload = { text : safeEval(args[1].toString().replace("/([^\d\w+\-*\/\\\(\)\.])/", "")).toString() };
+            console.log(botPayload["text"]);
+        }
+        else if(cmdName === "lmgtfy") {
+            var search = "";
+            for(var i = 1; i < args.length; i++) {
+                search += args[i] + "+";
+            }
+            botPayload = { text : "http://lmgtfy.com/?q=" + search.substring(0, search.length - 1) };
+        }
+        else if(cmdName === "g") {
+            var search = "";
+            for(var i = 1; i < args.length; i++) {
+                search += args[i] + "+";
+            }
+            botPayload = { text : "http://google.com/search?q=" + search.substring(0, search.length - 1) };
+        }
+        else if(cmdName === "date") {
+            var offset = -4;
+            botPayload = { text : new Date( new Date().getTime() + offset * 3600 * 1000).toUTCString().replace( / GMT$/, "" ) };
+        }
+        else {
+            botPayload = { text : "Invalid command. Run !help to see supported commands." }
+        }
+    } catch (e) {
+        botPayload = { text : e.toString() };
     }
     // avoid infinite loop
     if (userName !== 'slackbot') {

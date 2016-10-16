@@ -56,7 +56,12 @@ function cmdHandler(userName, cmdName, args, callback) {
                 for(var i = 1; i < args.length; i++) {
                     exp += args[i].toString().replace("/([^\d\w+\-*\/\\\(\)\.])/", "");
                 }
-                callback({ text : safeEval(exp) });
+                var res = safeEval(exp);
+                if(res === Infinity) {
+                    callback({ text : "Infinity" });
+                } else {
+                    callback({ text : res });
+                }
             } else {
                 throw errStr;
             }

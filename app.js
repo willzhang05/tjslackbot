@@ -3,8 +3,10 @@ var bodyParser = require("body-parser");
 var fs = require("fs");
 var request = require("request");
 var bot = require("./bot");
-
 var app = express();
+/*var port;
+getConfig("port", function(data) { port = process.env.PORT || int(data); });
+*/
 var port = process.env.PORT || 3000;
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -23,3 +25,19 @@ app.listen(port, function() {
 });
 
 app.post("/hello", bot);
+
+function getConfig(arg, callback) {
+    try {    
+        fs.readFile('./config.json', function read(err, data) {
+            if(err) {
+                throw err;
+            }
+            if(typeof config != 'object') {
+                callback(JSON.parse(data));
+            }
+        });
+    } catch(e) {
+        console.log(e);
+        process.exit(1);
+    }
+}
